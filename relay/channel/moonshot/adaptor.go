@@ -1,6 +1,7 @@
 package moonshot
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -15,6 +16,7 @@ import (
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/relay/constant"
 	"github.com/QuantumNous/new-api/relaykit/dto"
+	"github.com/QuantumNous/new-api/relaykit/relayconvert"
 	"github.com/QuantumNous/new-api/relaykit/types"
 
 	"github.com/gin-gonic/gin"
@@ -51,6 +53,9 @@ func (a *Adaptor) GetRequestURL(info *relaycommon.RelayInfo) (string, error) {
 	if specialPlan, ok := channelconstant.ChannelSpecialBases[baseURL]; ok {
 		if info.RelayFormat == types.RelayFormatClaude {
 			return fmt.Sprintf("%s/v1/messages", specialPlan.ClaudeBaseURL), nil
+		}
+		if info.RelayFormat == types.RelayFormatOpenAIResponses || info.RelayMode == constant.RelayModeResponses {
+			return fmt.Sprintf("%s/responses", specialPlan.OpenAIBaseURL), nil
 		}
 		if info.RelayFormat == types.RelayFormatOpenAI {
 			return fmt.Sprintf("%s/chat/completions", specialPlan.OpenAIBaseURL), nil
@@ -100,10 +105,12 @@ func isTemperatureOneOnlyModel(model string) bool {
 	return strings.EqualFold(model, "kimi-k2.6")
 }
 
-// ConvertOpenAIResponsesRequest forwards Responses requests to Kimi's native
-// /v1/responses (kimi-k3 only today; other models are rejected by the
-// upstream, not here) after rewriting the tools and effort Kimi rejects.
+// ConvertOpenAIResponsesRequest uses Kimi's native Responses endpoint while
+// adapting unsupported tool formats and reasoning effort.
 func (a *Adaptor) ConvertOpenAIResponsesRequest(c *gin.Context, info *relaycommon.RelayInfo, request dto.OpenAIResponsesRequest) (any, error) {
+	if err := relayconvert.PrepareNativeResponsesTools(info, &request); err != nil {
+		return nil, err
+	}
 	if request.Model == "" && info != nil {
 		request.Model = info.UpstreamModelName
 	}
@@ -125,39 +132,22 @@ func (a *Adaptor) ConvertOpenAIResponsesRequest(c *gin.Context, info *relaycommo
 	return request, nil
 }
 
-var defaultCustomToolSchema = map[string]any{
-	"type": "object",
-	"properties": map[string]any{
-		"input": map[string]any{
-			"type":        "string",
-			"description": "Input content or patch text",
-		},
-	},
-	"required": []string{"input"},
-}
-
 func sanitizeMoonshotResponsesTools(raw []byte) ([]byte, error) {
 	if len(raw) == 0 || string(raw) == "null" {
 		return raw, nil
 	}
-	var tools []map[string]any
+	var tools []map[string]json.RawMessage
 	if err := common.Unmarshal(raw, &tools); err != nil {
 		return nil, err
 	}
-	sanitized := make([]map[string]any, 0, len(tools))
+	sanitized := make([]map[string]json.RawMessage, 0, len(tools))
 	for _, tool := range tools {
-		toolType := strings.TrimSpace(common.Interface2String(tool["type"]))
+		toolType := strings.TrimSpace(common.JsonRawMessageToString(tool["type"]))
 		switch toolType {
 		case "function":
 			sanitized = append(sanitized, tool)
 		case "web_search":
 			delete(tool, "external_web_access")
-			sanitized = append(sanitized, tool)
-		case "custom":
-			tool["type"] = "function"
-			if params, ok := tool["parameters"].(map[string]any); !ok || len(params) == 0 {
-				tool["parameters"] = defaultCustomToolSchema
-			}
 			sanitized = append(sanitized, tool)
 		default:
 			// Moonshot rejects unknown built-in tool types like tool_search, image_generation, code_interpreter, etc.
