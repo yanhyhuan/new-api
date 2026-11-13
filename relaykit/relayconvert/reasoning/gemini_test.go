@@ -363,3 +363,60 @@ func TestNormalizeGeminiThinkingConfigRewritesNativeConfig(t *testing.T) {
 		})
 	}
 }
+
+func TestGemini4CarbonAndHydrogenThinkingLevels(t *testing.T) {
+	for _, model := range []string{"gemini-4-carbon", "gemini-4-hydrogen"} {
+		for _, tc := range []struct {
+			input            Effort
+			carbon, hydrogen string
+			adjusted         bool
+		}{
+			{EffortMinimal, "low", "low", true}, {EffortLow, "low", "low", false},
+			{EffortMedium, "medium", "medium", false}, {EffortHigh, "high", "high", false},
+			{EffortXHigh, "high", "xhigh", false}, {EffortMax, "high", "xhigh", true},
+		} {
+			t.Run(model+"/"+string(tc.input), func(t *testing.T) {
+				want := tc.carbon
+				adjusted := tc.adjusted
+				if model == "gemini-4-hydrogen" {
+					want = tc.hydrogen
+				} else if tc.input == EffortXHigh {
+					adjusted = true
+				}
+				got, err := RenderGemini(model, Intent{Mode: ModeEnabled, Effort: tc.input}, nil, 0)
+				require.NoError(t, err)
+				require.NotNil(t, got.Config)
+				assert.Equal(t, want, got.Config.ThinkingLevel)
+				assert.Equal(t, Effort(want), got.EffectiveEffort)
+				if adjusted {
+					assert.Equal(t, []string{"gemini_level_adjusted"}, diagnosticCodes(got.Diagnostics))
+				} else {
+					assert.Empty(t, got.Diagnostics)
+				}
+				generation := &dto.GeminiChatGenerationConfig{ThinkingConfig: &dto.GeminiThinkingConfig{ThinkingLevel: string(tc.input)}}
+				effective, _, err := NormalizeGeminiThinkingConfig(model, generation)
+				require.NoError(t, err)
+				assert.Equal(t, want, generation.ThinkingConfig.ThinkingLevel)
+				assert.Equal(t, Effort(want), effective)
+			})
+		}
+		t.Run(model+"/disabled", func(t *testing.T) {
+			got, err := RenderGemini(model, Intent{Mode: ModeDisabled, Effort: EffortNone}, nil, 0)
+			require.NoError(t, err)
+			require.NotNil(t, got.Config)
+			assert.Equal(t, "low", got.Config.ThinkingLevel)
+			assert.Equal(t, []string{"gemini_thinking_disable_unsupported"}, diagnosticCodes(got.Diagnostics))
+		})
+		t.Run(model+"/default", func(t *testing.T) {
+			want := EffortMedium
+			if model == "gemini-4-hydrogen" {
+				want = EffortHigh
+			}
+			got := ResolveGeminiDefault(model, Intent{})
+			assert.Equal(t, want, got.Effort)
+			assert.Equal(t, ModeEnabled, got.Mode)
+			got = ResolveGeminiEnabledDefault(model, Intent{Mode: ModeEnabled}, nil)
+			assert.Equal(t, want, got.Effort)
+		})
+	}
+}

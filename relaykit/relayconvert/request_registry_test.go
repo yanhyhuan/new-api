@@ -1159,3 +1159,40 @@ func TestGeminiToOpenAIChatPreservesTextAlongsideToolCalls(t *testing.T) {
 		})
 	}
 }
+
+func TestGemini4ThinkingLevelsAcrossRequestProtocols(t *testing.T) {
+	for _, model := range []string{"gemini-4-carbon", "gemini-4-hydrogen"} {
+		levels := []string{"low", "medium", "high"}
+		if model == "gemini-4-hydrogen" {
+			levels = append(levels, "xhigh")
+		}
+		for _, effort := range levels {
+			for _, protocol := range []string{"responses", "chat", "messages"} {
+				t.Run(model+"/"+effort+"/"+protocol, func(t *testing.T) {
+					info := &convmeta.Values{OriginModelName: model, UpstreamModelName: model, ChannelMetaAttached: true}
+					var req any
+					switch protocol {
+					case "responses":
+						info.ConversionChain = []types.RelayFormat{types.RelayFormatOpenAIResponses}
+						req = &dto.OpenAIResponsesRequest{Model: model, Input: mustRawMessage(t, "hello"), Reasoning: &dto.Reasoning{Effort: effort}}
+					case "chat":
+						info.ConversionChain = []types.RelayFormat{types.RelayFormatOpenAI}
+						req = &dto.GeneralOpenAIRequest{Model: model, ReasoningEffort: effort, Messages: []dto.Message{{Role: "user", Content: "hello"}}}
+					case "messages":
+						info.ConversionChain = []types.RelayFormat{types.RelayFormatClaude}
+						req = &dto.ClaudeRequest{Model: model, OutputConfig: mustRawMessage(t, map[string]any{"effort": effort}), Thinking: &dto.Thinking{Type: "adaptive"}, Messages: []dto.ClaudeMessage{{Role: "user", Content: "hello"}}}
+					}
+					result, err := ConvertRequest(context.Background(), info, types.RelayFormatGemini, req)
+					require.NoError(t, err)
+					converted, ok := result.Value.(*dto.GeminiChatRequest)
+					require.True(t, ok)
+					require.NotNil(t, converted.GenerationConfig.ThinkingConfig)
+					assert.Equal(t, effort, converted.GenerationConfig.ThinkingConfig.ThinkingLevel)
+					raw, err := json.Marshal(converted.GenerationConfig.ThinkingConfig)
+					require.NoError(t, err)
+					assert.Contains(t, string(raw), `"thinkingLevel":"`+effort+`"`)
+				})
+			}
+		}
+	}
+}
