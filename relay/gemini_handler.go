@@ -204,6 +204,24 @@ func GeminiEmbeddingHandler(c *gin.Context, info *relaycommon.RelayInfo) (newAPI
 		}
 	}
 
+	// Video needs a separate tariff that the current expression engine cannot
+	// represent. Reject before calling the provider rather than charge text rates.
+	if info.OriginModelName == "gemini-embedding-2" || info.OriginModelName == "gemini-embedding-2-preview" {
+		var requests []*dto.GeminiEmbeddingRequest
+		if batch, ok := req.(*dto.GeminiBatchEmbeddingRequest); ok {
+			requests = batch.Requests
+		} else {
+			requests = []*dto.GeminiEmbeddingRequest{req.(*dto.GeminiEmbeddingRequest)}
+		}
+		for _, item := range requests {
+			for _, part := range item.Content.Parts {
+				if (part.InlineData != nil && strings.HasPrefix(strings.ToLower(part.InlineData.MimeType), "video/")) || (part.FileData != nil && strings.HasPrefix(strings.ToLower(part.FileData.MimeType), "video/")) {
+					return types.NewErrorWithStatusCode(fmt.Errorf("video embedding pricing is not supported"), types.ErrorCodeInvalidRequest, http.StatusBadRequest, types.ErrOptionWithSkipRetry())
+				}
+			}
+		}
+	}
+
 	err = helper.ModelMappedHelper(c, info, req)
 	if err != nil {
 		return types.NewError(err, types.ErrorCodeChannelModelMappedError, types.ErrOptionWithSkipRetry())

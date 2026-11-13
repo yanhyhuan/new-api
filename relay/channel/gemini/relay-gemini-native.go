@@ -81,6 +81,9 @@ func NativeGeminiEmbeddingHandler(c *gin.Context, resp *http.Response, info *rel
 		metadata = geminiResponse.UsageMetadata
 	}
 
+	if err := validateEmbedding2Usage(info.UpstreamModelName, metadata); err != nil {
+		return nil, types.NewOpenAIError(err, types.ErrorCodeBadResponseBody, http.StatusBadGateway)
+	}
 	var usage *dto.Usage
 	if upstream := metadata.GeminiUsageMetadata(); upstream != nil {
 		upstreamUsage := buildUsageFromGeminiMetadata(upstream, info.GetEstimatePromptTokens())

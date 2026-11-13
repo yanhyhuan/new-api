@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"slices"
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
@@ -221,19 +220,16 @@ func (a *Adaptor) ConvertEmbeddingRequest(c *gin.Context, info *relaycommon.Rela
 	if request.Input == nil {
 		return nil, errors.New("input is required")
 	}
-	// Gemini embeds text only. The request estimate billed for this channel
-	// counts image, video and text parts, so a part must fail the request
-	// instead of being dropped and charged without reaching Gemini.
-	if items, ok := request.Input.([]any); ok && slices.ContainsFunc(items, func(item any) bool {
-		_, isPart := item.(map[string]any)
-		return isPart
-	}) {
-		return nil, types.NewErrorWithStatusCode(
-			errors.New("gemini embedding models accept only plain text input; images, videos and other content parts are not supported"),
-			types.ErrorCodeInvalidRequest,
-			http.StatusBadRequest,
-			types.ErrOptionWithSkipRetry(),
-		)
+	// The OpenAI conversion supports strings only. Native Gemini routes handle multimodal requests.
+	if request.EncodingFormat != "" && request.EncodingFormat != "float" {
+		return nil, types.NewErrorWithStatusCode(errors.New("gemini embeddings support only float encoding"), types.ErrorCodeInvalidRequest, http.StatusBadRequest, types.ErrOptionWithSkipRetry())
+	}
+	if items, ok := request.Input.([]any); ok {
+		for _, item := range items {
+			if _, ok := item.(string); !ok {
+				return nil, types.NewErrorWithStatusCode(errors.New("gemini embedding conversion supports only text input"), types.ErrorCodeInvalidRequest, http.StatusBadRequest, types.ErrOptionWithSkipRetry())
+			}
+		}
 	}
 
 	inputs := request.ParseInput()
@@ -260,7 +256,7 @@ func (a *Adaptor) ConvertEmbeddingRequest(c *gin.Context, info *relaycommon.Rela
 		// set specific parameters for different models
 		// https://ai.google.dev/api/embeddings?hl=zh-cn#method:-models.embedcontent
 		switch info.UpstreamModelName {
-		case "text-embedding-004", "gemini-embedding-exp-03-07", "gemini-embedding-001":
+		case "text-embedding-004", "gemini-embedding-exp-03-07", "gemini-embedding-001", "gemini-embedding-2", "gemini-embedding-2-preview":
 			// Only newer models introduced after 2024 support OutputDimensionality
 			dimensions := lo.FromPtrOr(request.Dimensions, 0)
 			if dimensions > 0 {

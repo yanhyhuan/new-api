@@ -242,3 +242,21 @@ func TestConvertEmbeddingRequestRejectsContentParts(t *testing.T) {
 	require.NoError(t, err)
 	assert.JSONEq(t, `["a cat","a dog"]`, ojson.GetBytes(wire, "requests.#.content.parts.0.text").Raw)
 }
+
+func TestEmbedding2DimensionsAndInputValidation(t *testing.T) {
+	for _, model := range []string{"gemini-embedding-2", "gemini-embedding-2-preview"} {
+		info := &relaycommon.RelayInfo{ChannelMeta: &relaycommon.ChannelMeta{UpstreamModelName: model}}
+		dimensions := 256
+		got, err := (&Adaptor{}).ConvertEmbeddingRequest(nil, info, dto.EmbeddingRequest{Model: model, Input: []any{"one", "two"}, Dimensions: &dimensions})
+		require.NoError(t, err)
+		wire, err := common.Marshal(got)
+		require.NoError(t, err)
+		assert.JSONEq(t, `[256,256]`, ojson.GetBytes(wire, "requests.#.outputDimensionality").Raw)
+		for _, input := range []any{[]any{"one", float64(1)}, []any{[]any{float64(1)}}} {
+			_, err = (&Adaptor{}).ConvertEmbeddingRequest(nil, info, dto.EmbeddingRequest{Model: model, Input: input})
+			require.Error(t, err)
+		}
+		_, err = (&Adaptor{}).ConvertEmbeddingRequest(nil, info, dto.EmbeddingRequest{Model: model, Input: "one", EncodingFormat: "base64"})
+		require.Error(t, err)
+	}
+}

@@ -724,10 +724,17 @@ func (m *GeminiEmbeddingUsageMetadata) GeminiUsageMetadata() *GeminiUsageMetadat
 	if m == nil || m.PromptTokenCount <= 0 {
 		return nil
 	}
+	details := append([]GeminiPromptTokensDetails(nil), m.PromptTokenDetails...)
+	// Gemini embedding DOCUMENT tokens have the same tariff as image tokens.
+	for i := range details {
+		if strings.EqualFold(details[i].Modality, "DOCUMENT") {
+			details[i].Modality = "IMAGE"
+		}
+	}
 	return &GeminiUsageMetadata{
 		PromptTokenCount:    m.PromptTokenCount,
 		TotalTokenCount:     m.PromptTokenCount,
-		PromptTokensDetails: m.PromptTokenDetails,
+		PromptTokensDetails: details,
 	}
 }
 

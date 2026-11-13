@@ -422,6 +422,9 @@ func GetAndValidateGeminiEmbeddingRequest(c *gin.Context) (*dto.GeminiEmbeddingR
 	if err != nil {
 		return nil, err
 	}
+	if len(request.Content.Parts) == 0 {
+		return nil, errors.New("embedding content parts are required")
+	}
 	return request, nil
 }
 
@@ -430,6 +433,14 @@ func GetAndValidateGeminiBatchEmbeddingRequest(c *gin.Context) (*dto.GeminiBatch
 	err := common.UnmarshalBodyReusableNoCopy(c, request)
 	if err != nil {
 		return nil, err
+	}
+	if len(request.Requests) == 0 {
+		return nil, errors.New("embedding requests are required")
+	}
+	for _, item := range request.Requests {
+		if item == nil || len(item.Content.Parts) == 0 {
+			return nil, errors.New("embedding request content parts are required")
+		}
 	}
 	return request, nil
 }
