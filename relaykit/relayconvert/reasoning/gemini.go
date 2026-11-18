@@ -513,14 +513,26 @@ func geminiLevelForEffort(model string, effort Effort) (string, error) {
 			return string(EffortLow), nil
 		}
 		return string(EffortHigh), nil
-	case strings.HasPrefix(model, "gemini-3.1-pro"), model == "gemini-pro-latest",
-		strings.HasPrefix(model, "gemini-4-argon"), strings.HasPrefix(model, "gemini-4-carbon"),
-		strings.HasPrefix(model, "gemini-4-hydrogen"):
+	case strings.HasPrefix(model, "gemini-4-argon"):
+		// Argon accepts max but rejects xhigh.
+		switch effort {
+		case EffortMinimal:
+			return string(EffortLow), nil
+		case EffortXHigh:
+			return string(EffortHigh), nil
+		case EffortMax:
+			return string(EffortMax), nil
+		}
+	case strings.HasPrefix(model, "gemini-4-hydrogen"):
+		switch effort {
+		case EffortMinimal:
+			return string(EffortLow), nil
+		case EffortXHigh, EffortMax:
+			return string(effort), nil
+		}
+	case strings.HasPrefix(model, "gemini-3.1-pro"), model == "gemini-pro-latest", strings.HasPrefix(model, "gemini-4-carbon"):
 		if effort == EffortMinimal {
 			return string(EffortLow), nil
-		}
-		if strings.HasPrefix(model, "gemini-4-hydrogen") && (effort == EffortXHigh || effort == EffortMax) {
-			return string(EffortXHigh), nil
 		}
 	}
 	switch effort {

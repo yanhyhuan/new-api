@@ -50,6 +50,36 @@ func TestRenderGeminiMapsAndClampsInsteadOfRejecting(t *testing.T) {
 			wantCodes:  []string{"gemini_level_adjusted"},
 		},
 		{
+			name:       "xhigh on gemini 4 hydrogen is kept",
+			model:      "gemini-4-hydrogen",
+			intent:     Intent{Mode: ModeEnabled, Effort: EffortXHigh},
+			wantLevel:  "xhigh",
+			wantEffort: EffortXHigh,
+		},
+		{
+			name:       "minimal on gemini 4 hydrogen moves to low",
+			model:      "gemini-4-hydrogen",
+			intent:     Intent{Mode: ModeEnabled, Effort: EffortMinimal},
+			wantLevel:  "low",
+			wantEffort: EffortLow,
+			wantCodes:  []string{"gemini_level_adjusted"},
+		},
+		{
+			name:       "max on gemini 4 argon is kept",
+			model:      "gemini-4-argon",
+			intent:     Intent{Mode: ModeEnabled, Effort: EffortMax},
+			wantLevel:  "max",
+			wantEffort: EffortMax,
+		},
+		{
+			name:       "xhigh on gemini 4 argon moves to high",
+			model:      "gemini-4-argon",
+			intent:     Intent{Mode: ModeEnabled, Effort: EffortXHigh},
+			wantLevel:  "high",
+			wantEffort: EffortHigh,
+			wantCodes:  []string{"gemini_level_adjusted"},
+		},
+		{
 			name:       "effort on gemini 2.5 flash becomes budget",
 			model:      "gemini-2.5-flash",
 			intent:     Intent{Mode: ModeEnabled, Effort: EffortHigh},
@@ -234,6 +264,20 @@ func TestNormalizeGeminiThinkingConfigRewritesNativeConfig(t *testing.T) {
 			wantCodes:  []string{"gemini_level_adjusted"},
 		},
 		{
+			name:       "max on gemini 4 argon is kept",
+			model:      "gemini-4-argon",
+			config:     dto.GeminiThinkingConfig{ThinkingLevel: "max"},
+			wantLevel:  "max",
+			wantEffort: EffortMax,
+		},
+		{
+			name:       "max on gemini 4 hydrogen is kept",
+			model:      "gemini-4-hydrogen",
+			config:     dto.GeminiThinkingConfig{ThinkingLevel: "max"},
+			wantLevel:  "max",
+			wantEffort: EffortMax,
+		},
+		{
 			name:    "unknown level is rejected",
 			model:   "gemini-3.7-flash",
 			config:  dto.GeminiThinkingConfig{ThinkingLevel: "ULTRA"},
@@ -373,14 +417,14 @@ func TestGemini4CarbonAndHydrogenThinkingLevels(t *testing.T) {
 		}{
 			{EffortMinimal, "low", "low", true}, {EffortLow, "low", "low", false},
 			{EffortMedium, "medium", "medium", false}, {EffortHigh, "high", "high", false},
-			{EffortXHigh, "high", "xhigh", false}, {EffortMax, "high", "xhigh", true},
+			{EffortXHigh, "high", "xhigh", false}, {EffortMax, "high", "max", false},
 		} {
 			t.Run(model+"/"+string(tc.input), func(t *testing.T) {
 				want := tc.carbon
 				adjusted := tc.adjusted
 				if model == "gemini-4-hydrogen" {
 					want = tc.hydrogen
-				} else if tc.input == EffortXHigh {
+				} else if tc.input == EffortXHigh || tc.input == EffortMax {
 					adjusted = true
 				}
 				got, err := RenderGemini(model, Intent{Mode: ModeEnabled, Effort: tc.input}, nil, 0)
