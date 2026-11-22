@@ -79,7 +79,7 @@ func InitOptionMap() {
 	common.OptionMap["SMTPForceAuthLogin"] = strconv.FormatBool(common.SMTPForceAuthLogin)
 	common.OptionMap["Notice"] = ""
 	common.OptionMap["About"] = ""
-	common.OptionMap["HomePageContent"] = ""
+	common.OptionMap["HomePageContent"] = common.DefaultHomePageContent
 	common.OptionMap["Footer"] = common.Footer
 	common.OptionMap["SystemName"] = common.SystemName
 	common.OptionMap["Logo"] = common.Logo
@@ -624,9 +624,21 @@ func updateOptionMap(key string, value string) (err error) {
 		common.LinuxDOMinimumTrustLevel, _ = strconv.Atoi(value)
 	case "Footer":
 		common.Footer = value
+	case "HomePageContent":
+		if value == "" {
+			common.OptionMap["HomePageContent"] = common.DefaultHomePageContent
+		}
 	case "SystemName":
+		if value == "" {
+			value = common.DefaultSystemName
+			common.OptionMap["SystemName"] = value
+		}
 		common.SystemName = value
 	case "Logo":
+		if value == "" {
+			value = common.DefaultLogo
+			common.OptionMap["Logo"] = value
+		}
 		common.Logo = value
 	case "WeChatServerAddress":
 		common.WeChatServerAddress = value

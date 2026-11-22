@@ -12,9 +12,42 @@ import (
 
 var StartTime = time.Now().Unix() // unit: second
 var Version = "v0.0.0"            // this hard coding will be replaced automatically when building, no need to manually change
-var SystemName = "New API"
+const (
+	DefaultSystemName      = "欢 AI"
+	DefaultLogo            = "/logo.png"
+	DefaultHomePageContent = `<style>
+.huan-hero {
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  min-height: 100vh;
+  overflow: hidden;
+  background: #0d1b24;
+}
+.huan-hero img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: 50% 24%;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+@media (max-width: 768px) {
+  .huan-hero img {
+    object-position: 50% 20%;
+  }
+}
+</style>
+<div class="huan-hero">
+  <img src="/home-4k.jpg" width="3840" height="2160" decoding="sync" fetchpriority="high" alt="" />
+</div>`
+)
+
+var SystemName = DefaultSystemName
 var Footer = ""
-var Logo = ""
+var Logo = DefaultLogo
 var TopUpLink = ""
 
 // var ChatLink = ""
