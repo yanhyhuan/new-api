@@ -7796,6 +7796,14 @@
     "Estimated Anlas": "Anlas ước tính",
     "Anlas unit price": "Đơn giá Anlas",
     "Anlas": "Anlas",
-    "Inactive": "Không hoạt động"
+    "Inactive": "Không hoạt động",
+    "Upload avatar": "Tải ảnh đại diện lên",
+    "Change avatar": "Đổi ảnh đại diện",
+    "Delete avatar": "Xóa ảnh đại diện",
+    "Avatar must be 2 MB or smaller": "Ảnh đại diện không được vượt quá 2 MB",
+    "PNG, JPG, WebP or GIF, up to 2 MB. Animated images are supported.": "Chấp nhận PNG, JPG, WebP hoặc GIF, tối đa 2 MB. Hỗ trợ ảnh động.",
+    "Your initials will be shown again.": "Tên viết tắt của bạn sẽ hiển thị trở lại.",
+    "Choose a valid PNG, JPG, WebP, or GIF image": "Vui lòng chọn ảnh PNG, JPG, WebP hoặc GIF hợp lệ",
+    "Unable to read avatar file": "Không thể đọc tệp ảnh đại diện"
   }
 }

@@ -28,6 +28,7 @@ export type UserPermissions = {
 }
 
 export interface AuthUser {
+  avatar_version?: string
   has_password?: boolean
   id: number
   username: string

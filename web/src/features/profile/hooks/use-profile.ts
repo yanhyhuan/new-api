@@ -21,6 +21,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
 
 import { handleServerError } from '@/lib/handle-server-error'
+import { useAuthStore } from '@/stores/auth-store'
 
 import { getUserProfile, updateUserProfile, updateUserSettings } from '../api'
 import type {
@@ -66,6 +67,15 @@ export function useProfile() {
   const refreshProfile = useCallback(async () => {
     await fetchProfile(true)
   }, [fetchProfile])
+
+  const setAvatarVersion = (userId: number, version: string) => {
+    const auth = useAuthStore.getState().auth
+    if (auth.user?.id !== userId) return
+    auth.setUser({ ...auth.user, avatar_version: version })
+    setProfile((current) =>
+      current?.id === userId ? { ...current, avatar_version: version } : current
+    )
+  }
 
   // Update user profile
   const updateProfile = useCallback(
@@ -128,6 +138,7 @@ export function useProfile() {
     updating,
     fetchProfile,
     refreshProfile,
+    setAvatarVersion,
     updateProfile,
     updateSettings,
   }

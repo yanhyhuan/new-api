@@ -7796,6 +7796,14 @@
     "Estimated Anlas": "Anlas estimés",
     "Anlas unit price": "Prix unitaire Anlas",
     "Anlas": "Anlas",
-    "Inactive": "Inactif"
+    "Inactive": "Inactif",
+    "Upload avatar": "Importer un avatar",
+    "Change avatar": "Changer d’avatar",
+    "Delete avatar": "Supprimer l’avatar",
+    "Avatar must be 2 MB or smaller": "L’avatar ne doit pas dépasser 2 Mo",
+    "PNG, JPG, WebP or GIF, up to 2 MB. Animated images are supported.": "PNG, JPG, WebP ou GIF, jusqu’à 2 Mo. Les images animées sont acceptées.",
+    "Your initials will be shown again.": "Vos initiales seront à nouveau affichées.",
+    "Choose a valid PNG, JPG, WebP, or GIF image": "Choisissez une image PNG, JPG, WebP ou GIF valide",
+    "Unable to read avatar file": "Impossible de lire le fichier de l’avatar"
   }
 }

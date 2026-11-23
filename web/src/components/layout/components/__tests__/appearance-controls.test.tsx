@@ -24,7 +24,14 @@ import {
   createRouter,
   RouterProvider,
 } from '@tanstack/react-router'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import {
+  act,
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {
   afterAll,
@@ -38,7 +45,7 @@ import {
 } from 'vitest'
 
 import { CommandMenu } from '@/components/command-menu'
-import { SidebarProvider } from '@/components/ui/sidebar'
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { DirectionProvider } from '@/context/direction-provider'
 import { LayoutProvider } from '@/context/layout-provider'
 import { SearchProvider } from '@/context/search-provider'
@@ -46,6 +53,7 @@ import { api } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth-store'
 
 import { AppHeader } from '../app-header'
+import { AppSidebar } from '../app-sidebar'
 import { PublicHeader } from '../public-header'
 
 const originalGetAnimations = Object.getOwnPropertyDescriptor(
@@ -100,6 +108,60 @@ describe('appearance controls', () => {
     client.clear()
     useAuthStore.getState().auth.reset()
     vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+  })
+
+  it('shows the current avatar in the mobile sidebar and restores initials after deletion', async () => {
+    vi.stubGlobal('innerWidth', 375)
+    vi.stubGlobal(
+      'Image',
+      class {
+        complete = true
+        naturalWidth = 16
+      }
+    )
+    const auth = useAuthStore.getState().auth
+    const user = { id: 7, username: 'Alice', role: 1, avatar_version: 'custom' }
+    auth.setUser(user)
+    const root = createRootRoute()
+    const index = createRoute({
+      getParentRoute: () => root,
+      path: '/',
+      component: () => (
+        <LayoutProvider>
+          <SidebarProvider>
+            <SidebarTrigger />
+            <AppSidebar />
+          </SidebarProvider>
+        </LayoutProvider>
+      ),
+    })
+    const router = createRouter({
+      routeTree: root.addChildren([index]),
+      history: createMemoryHistory({ initialEntries: ['/'] }),
+    })
+    await router.load()
+    render(
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    )
+    await userEvent
+      .setup()
+      .click(await screen.findByRole('button', { name: 'Toggle Sidebar' }))
+    const sidebar = within(
+      await screen.findByRole('dialog', { name: 'Sidebar' })
+    )
+    expect(sidebar.getByText('Alice')).toBeVisible()
+    expect(await sidebar.findByRole('presentation')).toHaveAttribute(
+      'src',
+      '/api/user/7/avatar?v=custom'
+    )
+    act(() => auth.setUser({ ...user, avatar_version: '' }))
+    await waitFor(() =>
+      expect(sidebar.queryByRole('presentation')).not.toBeInTheDocument()
+    )
+    expect(sidebar.getByText('A')).toBeVisible()
   })
 
   it('renders AppHeader without theme toggle or config drawer trigger', async () => {

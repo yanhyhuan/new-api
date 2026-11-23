@@ -112,6 +112,8 @@ type User struct {
 	LastLoginAt          int64                      `json:"last_login_at" gorm:"default:0;column:last_login_at"`
 	AuthVersion          int64                      `json:"-" gorm:"type:bigint;not null;default:1;column:auth_version"`
 	AdminPermissions     map[string]map[string]bool `json:"admin_permissions,omitempty" gorm:"-:all"`
+	Avatar               userAvatarColumn           `json:"-" gorm:"->:false"` // Migrated, but never written by a normal user save.
+	AvatarVersion        string                     `json:"-" gorm:"-:all"`
 }
 
 func (user *User) ToBaseUser() *UserBase {
@@ -526,7 +528,8 @@ func GetSelfUserById(id int) (*User, error) {
 	}
 	var profile struct {
 		User
-		HasPassword bool `gorm:"column:has_password"`
+		HasPassword  bool   `gorm:"column:has_password"`
+		AvatarHeader string `gorm:"column:avatar_header"`
 	}
 	err := DB.Model(&User{}).Select([]string{
 		"id", "username", "display_name", "role", "status", "email",
@@ -534,9 +537,13 @@ func GetSelfUserById(id int) (*User, error) {
 		"group", "quota", "used_quota", "request_count", "aff_code", "aff_count",
 		"aff_quota", "aff_history", "inviter_id", "linux_do_id", "setting",
 		"stripe_customer", "auth_version",
+		"SUBSTR(avatar, 1, 64) AS avatar_header",
 		"CASE WHEN password <> '' THEN 1 ELSE 0 END AS has_password",
 	}).First(&profile, "id = ?", id).Error
 	profile.User.HasPassword = profile.HasPassword
+	if _, suffix, ok := strings.Cut(profile.AvatarHeader, ";v="); ok {
+		profile.User.AvatarVersion, _, _ = strings.Cut(suffix, ";")
+	}
 	return &profile.User, err
 }
 

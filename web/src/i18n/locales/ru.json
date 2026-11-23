@@ -7796,6 +7796,14 @@
     "Estimated Anlas": "Оценка Anlas",
     "Anlas unit price": "Цена единицы Anlas",
     "Anlas": "Anlas",
-    "Inactive": "Неактивна"
+    "Inactive": "Неактивна",
+    "Upload avatar": "Загрузить аватар",
+    "Change avatar": "Изменить аватар",
+    "Delete avatar": "Удалить аватар",
+    "Avatar must be 2 MB or smaller": "Размер аватара не должен превышать 2 МБ",
+    "PNG, JPG, WebP or GIF, up to 2 MB. Animated images are supported.": "PNG, JPG, WebP или GIF, до 2 МБ. Анимация поддерживается.",
+    "Your initials will be shown again.": "Вместо аватара снова будут показаны инициалы.",
+    "Choose a valid PNG, JPG, WebP, or GIF image": "Выберите допустимое изображение PNG, JPG, WebP или GIF",
+    "Unable to read avatar file": "Не удалось прочитать файл аватара"
   }
 }

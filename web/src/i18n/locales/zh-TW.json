@@ -7796,6 +7796,14 @@
     "Estimated Anlas": "預估 Anlas",
     "Anlas unit price": "Anlas 單價",
     "Anlas": "Anlas",
-    "Inactive": "未生效"
+    "Inactive": "未生效",
+    "Upload avatar": "上傳頭像",
+    "Change avatar": "更換頭像",
+    "Delete avatar": "刪除頭像",
+    "Avatar must be 2 MB or smaller": "頭像檔案不能超過 2 MB",
+    "PNG, JPG, WebP or GIF, up to 2 MB. Animated images are supported.": "支援 PNG、JPG、WebP 和 GIF，含動圖。每張最大 2 MB。",
+    "Your initials will be shown again.": "刪除後將恢復為文字頭像。",
+    "Choose a valid PNG, JPG, WebP, or GIF image": "請選擇有效的 PNG、JPG、WebP 或 GIF 圖片",
+    "Unable to read avatar file": "無法讀取頭像檔案"
   }
 }

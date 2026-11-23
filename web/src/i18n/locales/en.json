@@ -7796,6 +7796,14 @@
     "Estimated Anlas": "Estimated Anlas",
     "Anlas unit price": "Anlas unit price",
     "Anlas": "Anlas",
-    "Inactive": "Inactive"
+    "Inactive": "Inactive",
+    "Upload avatar": "Upload avatar",
+    "Change avatar": "Change avatar",
+    "Delete avatar": "Delete avatar",
+    "Avatar must be 2 MB or smaller": "Avatar must be 2 MB or smaller",
+    "PNG, JPG, WebP or GIF, up to 2 MB. Animated images are supported.": "PNG, JPG, WebP or GIF, up to 2 MB. Animated images are supported.",
+    "Your initials will be shown again.": "Your initials will be shown again.",
+    "Choose a valid PNG, JPG, WebP, or GIF image": "Choose a valid PNG, JPG, WebP, or GIF image",
+    "Unable to read avatar file": "Unable to read avatar file"
   }
 }

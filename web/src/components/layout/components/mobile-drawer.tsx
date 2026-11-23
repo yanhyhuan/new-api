@@ -22,16 +22,15 @@ import { AnimatePresence, motion, type Variants } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 
 import { SignOutDialog } from '@/components/sign-out-dialog'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import useDialogState from '@/hooks/use-dialog'
 import { useIsSidebarModuleVisible } from '@/hooks/use-sidebar-config'
-import { useUserDisplay } from '@/hooks/use-user-display'
 import type { AuthUser } from '@/stores/auth-store'
 
 import { MOBILE_DRAWER_ANIMATION, MOBILE_DRAWER_CONFIG } from '../constants'
 import type { TopNavLink } from '../types'
+import { MobileUserSummary } from './mobile-user-summary'
 
 /**
  * Brand logo component with skeleton loading
@@ -81,7 +80,6 @@ interface MobileUserProfileProps {
 function MobileUserProfile({ user, onNavigate }: MobileUserProfileProps) {
   const { t } = useTranslation()
   const [signOutOpen, setSignOutOpen] = useDialogState()
-  const { displayName, initials, roleLabel } = useUserDisplay(user)
   const isSecurityVisible = useIsSidebarModuleVisible('/security')
 
   if (!user) return null
@@ -91,28 +89,7 @@ function MobileUserProfile({ user, onNavigate }: MobileUserProfileProps) {
       {/* User info section - compact style matching navigation */}
       <div className='flex flex-col text-sm'>
         {/* User header - simplified */}
-        <div className='border-border flex items-center gap-2.5 border-b p-2.5'>
-          <Avatar className='size-9'>
-            <AvatarImage src='/avatars/01.png' alt={`@${displayName}`} />
-            <AvatarFallback className='text-xs'>{initials}</AvatarFallback>
-          </Avatar>
-          <div className='flex flex-1 flex-col gap-0.5 overflow-hidden'>
-            <p className='text-foreground truncate font-medium'>
-              {displayName}
-            </p>
-            <div className='flex items-center gap-1.5'>
-              <span className='text-muted-foreground text-xs'>{roleLabel}</span>
-              {user.group && (
-                <>
-                  <span className='text-muted-foreground text-xs'>·</span>
-                  <span className='text-muted-foreground text-xs'>
-                    {String(user.group)}
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+        <MobileUserSummary user={user} />
 
         {/* Navigation links - same style as top nav */}
         <Link

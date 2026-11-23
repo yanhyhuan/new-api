@@ -43,3 +43,10 @@ export function getUserAvatarStyle(name: string): UserAvatarStyle {
 export function getUserAvatarFallback(name: string): string {
   return name.trim().charAt(0).toUpperCase() || '?'
 }
+
+export function getUserAvatarUrl(
+  user?: { id: number; avatar_version?: string } | null
+): string | undefined {
+  if (!user?.avatar_version) return undefined
+  return `/api/user/${user.id}/avatar?v=${encodeURIComponent(user.avatar_version)}`
+}

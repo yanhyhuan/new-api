@@ -45,6 +45,18 @@ export async function getUserProfile(): Promise<ApiResponse<UserProfile>> {
   return res.data
 }
 
+export async function updateAvatar(
+  file: File | null
+): Promise<ApiResponse<{ avatar_version: string }>> {
+  const url = '/api/user/self/avatar'
+  const response = file
+    ? await api.put(url, file, {
+        headers: { 'Content-Type': file.type || 'application/octet-stream' },
+      })
+    : await api.delete(url)
+  return response.data
+}
+
 /**
  * Update user profile
  */

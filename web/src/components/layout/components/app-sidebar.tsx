@@ -18,11 +18,18 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
-import { Sidebar, SidebarContent, SidebarRail } from '@/components/ui/sidebar'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarRail,
+  useSidebar,
+} from '@/components/ui/sidebar'
 import { useLayout } from '@/context/layout-provider'
 import { useSidebarView } from '@/hooks/use-sidebar-view'
 import { MOTION_TRANSITION, MOTION_VARIANTS } from '@/lib/motion'
+import { useAuthStore } from '@/stores/auth-store'
 
+import { MobileUserSummary } from './mobile-user-summary'
 import { NavGroup } from './nav-group'
 import { SidebarViewHeader } from './sidebar-view-header'
 
@@ -47,9 +54,12 @@ export function AppSidebar() {
   const { collapsible, variant } = useLayout()
   const { key, view, navGroups } = useSidebarView()
   const shouldReduce = useReducedMotion()
+  const { isMobile } = useSidebar()
+  const user = useAuthStore((s) => s.auth.user)
 
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
+      {isMobile && user && <MobileUserSummary user={user} />}
       {view && <SidebarViewHeader view={view} />}
 
       <SidebarContent className='py-2'>

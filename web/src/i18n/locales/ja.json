@@ -7796,6 +7796,14 @@
     "Estimated Anlas": "推定 Anlas",
     "Anlas unit price": "Anlas 単価",
     "Anlas": "Anlas",
-    "Inactive": "無効"
+    "Inactive": "無効",
+    "Upload avatar": "アバターをアップロード",
+    "Change avatar": "アバターを変更",
+    "Delete avatar": "アバターを削除",
+    "Avatar must be 2 MB or smaller": "アバターは 2 MB 以下にしてください",
+    "PNG, JPG, WebP or GIF, up to 2 MB. Animated images are supported.": "PNG、JPG、WebP、GIF 形式に対応しています。アニメーション対応、最大 2 MB です。",
+    "Your initials will be shown again.": "削除すると、イニシャルのアバターに戻ります。",
+    "Choose a valid PNG, JPG, WebP, or GIF image": "有効な PNG、JPG、WebP、GIF 画像を選択してください",
+    "Unable to read avatar file": "アバターファイルを読み込めません"
   }
 }
