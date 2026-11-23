@@ -84,6 +84,21 @@ export function detectChatLinkType(url: string): ChatLinkType {
   return 'custom-protocol'
 }
 
+export function chatFrameSandbox(src: string, parentOrigin: string): string {
+  const permissions = 'allow-forms allow-scripts allow-popups allow-downloads'
+  try {
+    const url = new URL(src, parentOrigin)
+    // External chat clients use their own storage and media permissions.
+    // Same-origin frames must not get both script and origin privileges.
+    if (url.protocol === 'https:' && url.origin !== parentOrigin) {
+      return `${permissions} allow-same-origin`
+    }
+  } catch {
+    // A malformed preset gets the same restricted sandbox as a local URL.
+  }
+  return permissions
+}
+
 export function chatLinkRequiresApiKey(url: string): boolean {
   return (
     url.includes('{key}') ||

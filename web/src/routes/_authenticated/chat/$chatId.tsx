@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/button'
 import { useActiveChatKey } from '@/features/chat/hooks/use-active-chat-key'
 import { useChatPresets } from '@/features/chat/hooks/use-chat-presets'
 import {
+  chatFrameSandbox,
   chatLinkRequiresApiKey,
   resolveChatUrl,
 } from '@/features/chat/lib/chat-links'
@@ -158,6 +159,7 @@ function ChatRouteComponent() {
       src={iframeSrc}
       key={iframeSrc}
       className='h-full w-full border-0'
+      sandbox={chatFrameSandbox(iframeSrc, window.location.origin)}
       allow='camera; microphone'
       title={`Chat preset: ${preset.name}`}
     />

@@ -46,8 +46,8 @@ export function PrivacyCard(_props: PrivacyCardProps) {
         </div>
         <Switch
           id='security-record-ip'
-          checked={true}
-          disabled={true}
+          checked
+          disabled
         />
       </div>
     </TitledCard>
